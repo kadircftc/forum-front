@@ -2,6 +2,8 @@ import { AxiosResponse } from 'axios';
 import type {
     ThreadCreateRequestDto,
     ThreadCreateResponseDto,
+    ThreadCreateWithMessageRequestDto,
+    ThreadCreateWithMessageResponseDto,
     ThreadDeleteRequestDto,
     ThreadDeleteResponseDto,
     ThreadListByCategoryRequestDto,
@@ -15,6 +17,11 @@ import httpClient from './httpClient';
 
 export async function createThread(payload: ThreadCreateRequestDto): Promise<ThreadCreateResponseDto> {
   const res: AxiosResponse<ThreadCreateResponseDto> = await httpClient.post('/threads', payload);
+  return res.data;
+}
+
+export async function createThreadWithMessage(payload: ThreadCreateWithMessageRequestDto): Promise<ThreadCreateWithMessageResponseDto> {
+  const res: AxiosResponse<ThreadCreateWithMessageResponseDto> = await httpClient.post('/threads/with-message', payload);
   return res.data;
 }
 

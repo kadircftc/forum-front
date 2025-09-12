@@ -58,3 +58,126 @@
 .animate-fade-in { animation: fadeIn 1s ease-in-out; }
 .animate-slide-up { animation: slideUp 1s ease-out; }
 .animate-scale-in { animation: scaleIn 0.8s ease-out; }
+
+/* Admin Category Animations */
+.admin-category-sparkle {
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-category-sparkle::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #f97316, #fb923c, #fbbf24, #f97316);
+  border-radius: inherit;
+  z-index: -1;
+  animation: adminGlow 2s linear infinite;
+}
+
+.admin-category-sparkle::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  border-radius: inherit;
+  animation: adminShimmer 3s linear infinite;
+}
+
+@keyframes adminGlow {
+  0% { background: linear-gradient(45deg, #f97316, #fb923c, #fbbf24, #f97316); }
+  25% { background: linear-gradient(45deg, #fb923c, #fbbf24, #f97316, #fb923c); }
+  50% { background: linear-gradient(45deg, #fbbf24, #f97316, #fb923c, #fbbf24); }
+  75% { background: linear-gradient(45deg, #f97316, #fb923c, #fbbf24, #f97316); }
+  100% { background: linear-gradient(45deg, #f97316, #fb923c, #fbbf24, #f97316); }
+}
+
+@keyframes adminShimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Admin Message Avatar */
+.admin-avatar {
+  position: relative;
+  animation: adminAvatarGlow 2s ease-in-out infinite alternate;
+  width: 40px;
+  height: 40px;
+}
+
+.admin-avatar::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #f97316, #fb923c, #fbbf24, #f97316);
+  border-radius: 50%;
+  z-index: -1;
+  animation: adminAvatarPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes adminAvatarGlow {
+  0% { 
+    box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+    transform: scale(1);
+  }
+  100% { 
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.8), 0 0 30px rgba(251, 146, 60, 0.4);
+    transform: scale(1.05);
+  }
+}
+
+@keyframes adminAvatarPulse {
+  0%, 100% { 
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+/* Admin Thread Sparkles */
+.admin-thread-sparkles {
+  position: relative;
+}
+
+.admin-thread-sparkles::before,
+.admin-thread-sparkles::after {
+  content: '✨';
+  position: absolute;
+  font-size: 12px;
+  animation: adminSparkleFloat 3s ease-in-out infinite;
+}
+
+.admin-thread-sparkles::before {
+  top: 5px;
+  right: 5px;
+  animation-delay: 0s;
+}
+
+.admin-thread-sparkles::after {
+  bottom: 5px;
+  left: 5px;
+  animation-delay: 1.5s;
+}
+
+@keyframes adminSparkleFloat {
+  0%, 100% { 
+    opacity: 0;
+    transform: translateY(0) rotate(0deg);
+  }
+  50% { 
+    opacity: 1;
+    transform: translateY(-10px) rotate(180deg);
+  }
+}

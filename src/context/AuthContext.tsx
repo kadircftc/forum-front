@@ -1,34 +1,81 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { JwtTokenManager } from '../infrastructure/token/JwtTokenManager';
-import type { AuthUserDto } from '../types';
+import { refreshAccessToken } from '../services/authService';
+import { getCurrentUser } from '../services/userService';
+import type { UserMeDto } from '../types';
 
 interface AuthState {
-  user: AuthUserDto | null;
-  setUser: (u: AuthUserDto | null) => void;
+  user: UserMeDto | null;
   isAdmin: boolean;
   isAuthenticated: boolean;
+  isLoading: boolean;
+  refreshUser: () => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
 
-const USER_KEY = 'authUser';
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUserDto | null>(null);
+  const [user, setUser] = useState<UserMeDto | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const tokenManager = useMemo(() => new JwtTokenManager(), []);
 
-  useEffect(() => {
+  // Kullanıcı bilgilerini API'den al
+  const refreshUser = async () => {
     try {
-      const raw = localStorage.getItem(USER_KEY);
-      if (raw) setUser(JSON.parse(raw));
-    } catch {}
+      const token = tokenManager.getToken();
+      if (!token) {
+        setUser(null);
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await getCurrentUser();
+      setUser(response.user);
+    } catch (error: unknown) {
+      console.error('Kullanıcı bilgileri alınırken hata:', error);
+      
+      // 401 hatası ise refresh token ile yenilemeyi dene
+      if (error && typeof error === 'object' && 'response' in error && 
+          error.response && typeof error.response === 'object' && 'status' in error.response && 
+          error.response.status === 401) {
+        try {
+          console.log('401 hatası, refresh token ile yenileme deneniyor...');
+          const newToken = await refreshAccessToken();
+          if (newToken) {
+            console.log('Token yenilendi, kullanıcı bilgileri tekrar alınıyor...');
+            const response = await getCurrentUser();
+            setUser(response.user);
+            return;
+          }
+        } catch (refreshError) {
+          console.error('Refresh token ile yenileme başarısız:', refreshError);
+        }
+      }
+      
+      // Refresh başarısızsa veya başka hata varsa kullanıcıyı çıkış yap
+      setUser(null);
+      tokenManager.destroyToken();
+      tokenManager.destroyRefreshToken();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Component mount olduğunda kullanıcı bilgilerini al
+  useEffect(() => {
+    refreshUser();
   }, []);
 
+  // Token değiştiğinde kullanıcı bilgilerini yenile
   useEffect(() => {
-    if (user) localStorage.setItem(USER_KEY, JSON.stringify(user));
-    else localStorage.removeItem(USER_KEY);
-  }, [user]);
+    const token = tokenManager.getToken();
+    if (token && !user) {
+      refreshUser();
+    } else if (!token && user) {
+      setUser(null);
+    }
+  }, [tokenManager.getToken()]);
 
   const logout = () => {
     setUser(null);
@@ -38,9 +85,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value: AuthState = {
     user,
-    setUser,
     isAdmin: (user?.role ?? '').toLowerCase() === 'admin',
-    isAuthenticated: !!tokenManager.getToken(),
+    isAuthenticated: !!tokenManager.getToken() && !!user,
+    isLoading,
+    refreshUser,
     logout,
   };
 

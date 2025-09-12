@@ -7,7 +7,7 @@ import { login } from '../services/authService';
 
 function LoginPage() {
   const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const { refreshUser } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,8 +18,9 @@ function LoginPage() {
     setError(null);
     setLoading(true);
     try {
-      const res = await login({ email, password });
-      if (res.user) setUser(res.user);
+      await login({ email, password });
+      // Login başarılı olduktan sonra kullanıcı bilgilerini API'den al
+      await refreshUser();
       navigate('/forum');
     } catch {
       setError('Giriş başarısız. Bilgilerinizi kontrol edin.');
