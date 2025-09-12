@@ -1,16 +1,16 @@
 import { AxiosResponse } from 'axios';
 import { JwtTokenManager } from '../infrastructure/token/JwtTokenManager';
 import type {
-    LoginRequestDto,
-    LoginResponseDto,
-    RefreshRequestDto,
-    RefreshResponseDto,
-    RegisterRequestDto,
-    RegisterResponseDto,
-    TestEmailRequestDto,
-    TestEmailResponseDto,
-    VerifyEmailRequestDto,
-    VerifyEmailResponseDto,
+  LoginRequestDto,
+  LoginResponseDto,
+  RefreshRequestDto,
+  RefreshResponseDto,
+  RegisterRequestDto,
+  RegisterResponseDto,
+  TestEmailRequestDto,
+  TestEmailResponseDto,
+  VerifyEmailRequestDto,
+  VerifyEmailResponseDto,
 } from '../types';
 import httpClient from './httpClient';
 
@@ -20,7 +20,6 @@ const tokenManager = new JwtTokenManager();
 
 export async function login(request: LoginRequestDto): Promise<LoginResponseDto> {
   const response: AxiosResponse<LoginResponseDto> = await httpClient.post('/auth/login', request);
-  console.log(response);
   if (response.data?.accessToken) {
     tokenManager.saveToken(response.data.accessToken);
   }

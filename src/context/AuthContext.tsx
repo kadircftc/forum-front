@@ -40,10 +40,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           error.response && typeof error.response === 'object' && 'status' in error.response && 
           error.response.status === 401) {
         try {
-          console.log('401 hatası, refresh token ile yenileme deneniyor...');
           const newToken = await refreshAccessToken();
           if (newToken) {
-            console.log('Token yenilendi, kullanıcı bilgileri tekrar alınıyor...');
             const response = await getCurrentUser();
             setUser(response.user);
             return;
