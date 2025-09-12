@@ -8,7 +8,7 @@ function HomePage() {
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-4 mb-6">
             <img 
-              src="/src/assets/reqspark_logo.png" 
+              src="/reqspark_logo.png" 
               alt="Reqspark Logo" 
               className="w-40  object-contain"
             />
