@@ -181,3 +181,157 @@
     transform: translateY(-10px) rotate(180deg);
   }
 }
+
+/* Homepage Wave Animations */
+@keyframes wave {
+  0%, 100% { 
+    transform: translateX(-50%) translateY(0) rotate(0deg);
+  }
+  50% { 
+    transform: translateX(-50%) translateY(-20px) rotate(180deg);
+  }
+}
+
+@keyframes waveReverse {
+  0%, 100% { 
+    transform: translateX(-50%) translateY(0) rotate(0deg);
+  }
+  50% { 
+    transform: translateX(-50%) translateY(20px) rotate(-180deg);
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Homepage specific animations */
+.animate-wave {
+  animation: wave 4s ease-in-out infinite;
+}
+
+.animate-wave-reverse {
+  animation: waveReverse 4s ease-in-out infinite;
+}
+
+.animate-ripple {
+  animation: ripple 2s infinite;
+}
+
+.animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
+}
+
+.animate-float-up {
+  animation: floatUp 1s ease-out;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Floating particles */
+.floating-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(34, 211, 238, 0.6);
+  border-radius: 50%;
+  animation: floatParticle 8s linear infinite;
+}
+
+@keyframes floatParticle {
+  0% {
+    transform: translateY(100vh) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) translateX(100px);
+    opacity: 0;
+  }
+}
+
+/* Glass morphism enhancements */
+.glass-effect-enhanced {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Hover effects for cards */
+.card-hover-effect {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover-effect:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Social media button animations */
+.social-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.social-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.social-btn:hover::before {
+  left: 100%;
+}
