@@ -116,7 +116,6 @@ function ForumPage() {
       setLoading(true);
       try {
         const res = await listThreadsByCategory({ category_id: selectedCategoryId });
-        console.log('Backend\'den gelen thread\'ler:', res.threads);
         setThreads(res.threads);
         setSelectedThread(null);
         setMessages([]);

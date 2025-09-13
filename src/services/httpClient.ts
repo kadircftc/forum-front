@@ -34,17 +34,9 @@ httpClient.interceptors.response.use(
     const requestUrl = (originalRequest?.url || '').toString();
     const isRefreshCall = requestUrl.includes('/auth/refresh');
     const isLoginCall = requestUrl.includes('/auth/login');
-    console.log('originalRequest',);
-    console.log('Interceptor çalıştı:', {
-      status,
-      url: requestUrl,
-      isRefreshCall,
-      isLoginCall,
-      hasRetry: originalRequest?._retry
-    });
+   
   
     if (status === 401 && originalRequest && !originalRequest._retry && !isRefreshCall && !isLoginCall) {
-      console.log('401 hatası yakalandı, refresh token deneniyor...');
       originalRequest._retry = true;
 
       if (isRefreshing) {

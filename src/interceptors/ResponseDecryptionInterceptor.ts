@@ -21,7 +21,6 @@ export const addResponseDecryptionInterceptor = (
           AES256EncryptionService.decrypt(encryptedData),
         );
       }
-      console.log('response', response);
       return response;
     },
     (error) => {

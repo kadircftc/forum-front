@@ -22,7 +22,7 @@ class SocketService {
       return;
     }
 
-    const socketUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000';
+    const socketUrl = import.meta.env.VITE_API_BASE_URL;
     
     this.socket = io(socketUrl, {
       auth: {
@@ -32,17 +32,14 @@ class SocketService {
     });
 
     this.socket.on('connect', () => {
-      console.log('Socket bağlantısı kuruldu:', this.socket?.id);
       this.isConnected = true;
     });
 
     this.socket.on('disconnect', (reason) => {
-      console.log('Socket bağlantısı kesildi:', reason);
       this.isConnected = false;
     });
 
     this.socket.on('connect_error', (error) => {
-      console.error('Socket bağlantı hatası:', error);
       this.isConnected = false;
     });
   }
@@ -59,7 +56,6 @@ class SocketService {
   setUser(userId: number): void {
     if (this.socket && this.isConnected) {
       this.socket.emit('set_user', userId);
-      console.log(`Kullanıcı ID ${userId} socket'e ayarlandı`);
     }
   }
 
