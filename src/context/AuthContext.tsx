@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { JwtTokenManager } from '../infrastructure/token/JwtTokenManager';
 import { refreshAccessToken } from '../services/authService';
+import socketService from '../services/socketService';
 import { getCurrentUser } from '../services/userService';
 import type { UserMeDto } from '../types';
 
@@ -79,6 +80,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     tokenManager.destroyToken();
     tokenManager.destroyRefreshToken();
+    // Socket bağlantısını kes
+    socketService.disconnect();
   };
 
   const value: AuthState = {

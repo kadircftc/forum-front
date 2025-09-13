@@ -19,14 +19,12 @@ export const httpClient: AxiosInstance = axios.create({
 addRequestEncryptionInterceptor(httpClient);
 addAuthInterceptor(httpClient);
 
-// Response: decrypt
-addResponseDecryptionInterceptor(httpClient);
-
 // 401 için refresh flow
 const tokenManager = new JwtTokenManager();
 let isRefreshing = false;
 let pendingQueue: Array<() => void> = [];
 
+// Response interceptor'ı en başta ekle
 httpClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
@@ -36,8 +34,17 @@ httpClient.interceptors.response.use(
     const requestUrl = (originalRequest?.url || '').toString();
     const isRefreshCall = requestUrl.includes('/auth/refresh');
     const isLoginCall = requestUrl.includes('/auth/login');
-
+    console.log('originalRequest',);
+    console.log('Interceptor çalıştı:', {
+      status,
+      url: requestUrl,
+      isRefreshCall,
+      isLoginCall,
+      hasRetry: originalRequest?._retry
+    });
+  
     if (status === 401 && originalRequest && !originalRequest._retry && !isRefreshCall && !isLoginCall) {
+      console.log('401 hatası yakalandı, refresh token deneniyor...');
       originalRequest._retry = true;
 
       if (isRefreshing) {
@@ -51,9 +58,15 @@ httpClient.interceptors.response.use(
             // Varsayılan header'ı güncelle
             httpClient.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
           } else {
+            // Refresh token başarısız, tokenları temizle
             tokenManager.destroyToken();
             tokenManager.destroyRefreshToken();
           }
+        } catch (refreshError) {
+          // Refresh token hatası, tokenları temizle
+          console.error('Refresh token hatası:', refreshError);
+          tokenManager.destroyToken();
+          tokenManager.destroyRefreshToken();
         } finally {
           isRefreshing = false;
           pendingQueue.forEach((resolve) => resolve());
@@ -71,6 +84,9 @@ httpClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Response: decrypt (en son ekle)
+addResponseDecryptionInterceptor(httpClient);
 
 export default httpClient;
 

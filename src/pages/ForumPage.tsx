@@ -6,6 +6,7 @@ import { listAdminCategories } from '../services/adminCategoryService';
 import { listAdminThreadMessages, listAdminThreadsByCategory } from '../services/adminThreadService';
 import { listCategories } from '../services/categoryService';
 import { createMessage, listMessagesByThread } from '../services/messageService';
+import socketService from '../services/socketService';
 import { deleteThread, listThreadsByCategory, searchThreads } from '../services/threadService';
 import type { AdminCategoryDto, AdminMessageDto, AdminThreadDto, CategoryDto, MessageDto, ThreadDto, ThreadSearchResponseDto } from '../types';
 
@@ -35,6 +36,8 @@ function ForumPage() {
   const [loading, setLoading] = useState(false);
   const [searchInfo, setSearchInfo] = useState<Pick<ThreadSearchResponseDto, 'page' | 'limit' | 'total' | 'has_more'> | null>(null);
   const [currentSearchPage, setCurrentSearchPage] = useState(1);
+  const [newMessageThreads, setNewMessageThreads] = useState<Set<number>>(new Set());
+  const [threadMessageCounts, setThreadMessageCounts] = useState<Map<number, number>>(new Map());
 
   useEffect(() => {
     (async () => {
@@ -51,12 +54,69 @@ function ForumPage() {
     })();
   }, []);
 
+  // Socket bağlantısı ve mesaj dinleyicisi
+  useEffect(() => {
+    if (user) {
+      // Socket bağlantısını kur
+      socketService.connect();
+      
+      // Kullanıcı ID'sini socket'e ayarla
+      socketService.setUser(user.id);
+
+      // Yeni mesaj dinleyicisi
+      const handleNewMessage = (message: MessageDto & { 
+        is_mine: boolean; 
+        align: 'left' | 'right'; 
+        username?: string; 
+        thread_title?: string; 
+        category_name?: string; 
+        category_id?: number;
+      }) => {
+        // Eğer kullanıcı mesajın geldiği thread'de ise mesajı direkt ekle
+        if (selectedThread && message.thread_id === selectedThread.id) {
+          setMessages(prev => {
+            justAppendedRef.current = true;
+            return [...prev, message];
+          });
+        } else {
+          // Değilse thread'i yanıp sönen listeye ekle ve mesaj sayısını artır
+          setNewMessageThreads(prev => new Set(prev).add(message.thread_id));
+          
+          // Mesaj sayısını artır
+          setThreadMessageCounts(prev => {
+            const newMap = new Map(prev);
+            const currentCount = newMap.get(message.thread_id) || 0;
+            newMap.set(message.thread_id, currentCount + 1);
+            return newMap;
+          });
+
+          // 5 saniye sonra yanıp sönme efektini kaldır
+          setTimeout(() => {
+            setNewMessageThreads(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(message.thread_id);
+              return newSet;
+            });
+          }, 5000);
+        }
+      };
+
+      socketService.onNewMessage(handleNewMessage);
+
+      return () => {
+        socketService.offNewMessage(handleNewMessage);
+        socketService.disconnect();
+      };
+    }
+  }, [user, selectedThread, navigate]);
+
   useEffect(() => {
     if (!selectedCategoryId) return;
     (async () => {
       setLoading(true);
       try {
         const res = await listThreadsByCategory({ category_id: selectedCategoryId });
+        console.log('Backend\'den gelen thread\'ler:', res.threads);
         setThreads(res.threads);
         setSelectedThread(null);
         setMessages([]);
@@ -317,6 +377,21 @@ function ForumPage() {
                 </div>
               </div>
             )}
+            
+            {/* Socket Bağlantı Durumu */}
+            <div className="flex items-center gap-2">
+              {socketService.isSocketConnected() ? (
+                <div className="flex items-center gap-1 text-green-400 text-xs">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span>Bağlı</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 text-red-400 text-xs">
+                  <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+                  <span>Bağlantı Kesildi</span>
+                </div>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-3">
             {isAdmin && (
@@ -445,22 +520,59 @@ function ForumPage() {
             {loading && <div className="text-zinc-400">Yükleniyor...</div>}
             
             {/* Normal Threads */}
-            {!loading && selectedCategoryId && threads.map((t) => (
-              <div key={t.id} className={`glass-effect p-3 rounded-lg ${selectedThread?.id === t.id ? 'ring-1 ring-cyan-500' : ''}`}>
-                <button className="text-left w-full" onClick={() => openThread(t)}>
-                  <div className="font-medium text-zinc-100 line-clamp-2">{t.title}</div>
-                  <div className="text-xs text-zinc-400 mt-1">
-                   
-                    {t.message_count !== undefined && (
-                      <span className="ml-2 text-cyan-400">💬 {t.message_count}</span>
-                    )}
-                  </div>
-                </button>
-                {(canDeleteThread(t)) && (
-                  <button onClick={() => removeThread(t)} className="mt-2 text-xs text-red-400 hover:text-red-300">Sil</button>
-                )}
-              </div>
-            ))}
+            {!loading && selectedCategoryId && threads.map((t) => {
+              const hasNewMessage = newMessageThreads.has(t.id);
+              const additionalCount = threadMessageCounts.get(t.id) || 0;
+              const backendCount = t.message_count || 0;
+              
+              return (
+                <div 
+                  key={t.id} 
+                  className={`glass-effect p-3 rounded-lg transition-all duration-300 ${
+                    selectedThread?.id === t.id ? 'ring-1 ring-cyan-500' : ''
+                  } ${
+                    hasNewMessage ? 'animate-pulse bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-400/50' : ''
+                  }`}
+                >
+                  <button className="text-left w-full" onClick={() => {
+                    // Thread'e tıklandığında yeni mesaj göstergesini kaldır
+                    setNewMessageThreads(prev => {
+                      const newSet = new Set(prev);
+                      newSet.delete(t.id);
+                      return newSet;
+                    });
+                    setThreadMessageCounts(prev => {
+                      const newMap = new Map(prev);
+                      newMap.delete(t.id);
+                      return newMap;
+                    });
+                    openThread(t);
+                  }}>
+                    <div className="font-medium text-zinc-100 line-clamp-2 flex items-center gap-2">
+                      {t.title}
+                      {hasNewMessage && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-cyan-500 text-white animate-bounce">
+                          Yeni!
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-zinc-400 mt-1">
+                      {backendCount > 0 && (
+                        <span className="ml-2 text-cyan-400">
+                          💬 {backendCount}
+                          {additionalCount > 0 && (
+                            <span className="text-green-400 ml-1">(+{additionalCount})</span>
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                  {(canDeleteThread(t)) && (
+                    <button onClick={() => removeThread(t)} className="mt-2 text-xs text-red-400 hover:text-red-300">Sil</button>
+                  )}
+                </div>
+              );
+            })}
 
             {/* Admin Threads */}
             {!loading && selectedAdminCategoryId && adminThreads.map((t) => (
