@@ -7,6 +7,7 @@ export const addResponseDecryptionInterceptor = (
 ): void => {
   axios.interceptors.response.use(
     (response) => {
+      console.log('response', response);
       if (
         response instanceof Object &&
         response.data.payload &&

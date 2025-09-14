@@ -9,7 +9,13 @@ export const addRequestEncryptionInterceptor = (axios: AxiosInstance): void => {
         return config;
       }
 
-      const stringifiedData = JSON.stringify(config.data);
+      // Timestamp ekle
+      const withTimestamp = {
+        ...config.data,
+        timestamp: Date.now()
+      };
+
+      const stringifiedData = JSON.stringify(withTimestamp);
       const encryptedDto: BaseEncryptedDto = AES256EncryptionService.encrypt(stringifiedData);
 
       config.data = encryptedDto;
@@ -19,4 +25,4 @@ export const addRequestEncryptionInterceptor = (axios: AxiosInstance): void => {
     },
     (error) => Promise.reject(error)
   );
-}; 
+};

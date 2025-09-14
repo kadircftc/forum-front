@@ -56,4 +56,21 @@ export async function register(payload: RegisterRequestDto): Promise<RegisterRes
   return res.data;
 }
 
+export async function forgotPassword(email: string): Promise<{ message: string }> {
+  const res: AxiosResponse<{ message: string }> = await httpClient.post('/auth/forgot-password', { email });
+  return res.data;
+}
+
+export async function verifyResetToken(token: string): Promise<{ valid: boolean; email: string }> {
+  const res: AxiosResponse<{ valid: boolean; email: string }> = await httpClient.post('/auth/verify-reset-token', {
+     token : token
+  });
+  return res.data;
+}
+
+export async function resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+  const res: AxiosResponse<{ message: string }> = await httpClient.post('/auth/reset-password', { token, newPassword });
+  return res.data;
+}
+
 

@@ -2,6 +2,7 @@ import { ArrowLeft, LogIn } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AnimatedBackground from '../components/AnimatedBackground';
+import ForgotPasswordModal from '../components/ForgotPasswordModal';
 import { useAuth } from '../context/AuthContext';
 import { login } from '../services/authService';
 
@@ -12,6 +13,7 @@ function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,7 +83,34 @@ function LoginPage() {
             {loading ? 'Giriş yapılıyor...' : 'Giriş Yap'}
           </button>
         </form>
+
+        {/* Şifremi Unuttum Linki */}
+        <div className="text-center mt-4">
+          <button
+            type="button"
+            onClick={() => setShowForgotPassword(true)}
+            className="text-cyan-400 hover:text-cyan-300 text-sm transition-colors duration-300 hover:underline"
+          >
+            Şifremi Unuttum
+          </button>
+        </div>
+
+        {/* Kayıt Ol Linki */}
+        <div className="text-center mt-6">
+          <p className="text-zinc-400 text-sm">
+            Hesabınız yok mu?{' '}
+            <Link to="/register" className="text-cyan-400 hover:text-cyan-300 transition-colors duration-300 hover:underline">
+              Kayıt Ol
+            </Link>
+          </p>
+        </div>
       </div>
+
+      {/* Şifremi Unuttum Modalı */}
+      <ForgotPasswordModal
+        isOpen={showForgotPassword}
+        onClose={() => setShowForgotPassword(false)}
+      />
     </AnimatedBackground>
   );
 }
